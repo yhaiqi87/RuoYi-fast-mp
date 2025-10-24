@@ -1,10 +1,6 @@
 package com.ruoyi.framework.config.properties;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import com.ruoyi.framework.aspectj.lang.annotation.Anonymous;
 import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -12,49 +8,41 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import com.ruoyi.framework.aspectj.lang.annotation.Anonymous;
+import org.springframework.web.bind.annotation.*;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * 设置Anonymous注解允许匿名访问的url
- * 
+ *
  * @author ruoyi
  */
 @Configuration
-public class PermitAllUrlProperties implements InitializingBean, ApplicationContextAware
-{
+public class PermitAllUrlProperties implements InitializingBean, ApplicationContextAware {
     private List<String> urls = new ArrayList<>();
 
     private ApplicationContext applicationContext;
 
     @Override
-    public void afterPropertiesSet() throws Exception
-    {
+    public void afterPropertiesSet() throws Exception {
         Map<String, Object> controllers = applicationContext.getBeansWithAnnotation(Controller.class);
-        for (Object bean : controllers.values())
-        {
+        for (Object bean : controllers.values()) {
             Class<?> beanClass;
-            if (bean instanceof Advised)
-            {
+            if (bean instanceof Advised) {
                 beanClass = ((Advised) bean).getTargetSource().getTarget().getClass();
-            }
-            else
-            {
+            } else {
                 beanClass = bean.getClass();
             }
             // 处理类级别的匿名访问注解
-            if (beanClass.isAnnotationPresent(Anonymous.class))
-            {
+            if (beanClass.isAnnotationPresent(Anonymous.class)) {
                 RequestMapping baseMapping = beanClass.getAnnotation(RequestMapping.class);
-                if (Objects.nonNull(baseMapping))
-                {
+                if (Objects.nonNull(baseMapping)) {
                     String[] baseUrl = baseMapping.value();
-                    for (String url : baseUrl)
-                    {
+                    for (String url : baseUrl) {
                         urls.add(prefix(url) + "/*");
                     }
                     continue;
@@ -63,42 +51,30 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
 
             // 处理方法级别的匿名访问注解
             Method[] methods = beanClass.getDeclaredMethods();
-            for (Method method : methods)
-            {
-                if (method.isAnnotationPresent(Anonymous.class))
-                {
+            for (Method method : methods) {
+                if (method.isAnnotationPresent(Anonymous.class)) {
                     RequestMapping baseMapping = beanClass.getAnnotation(RequestMapping.class);
                     String[] baseUrl = {};
-                    if (Objects.nonNull(baseMapping))
-                    {
+                    if (Objects.nonNull(baseMapping)) {
                         baseUrl = baseMapping.value();
                     }
-                    if (method.isAnnotationPresent(RequestMapping.class))
-                    {
+                    if (method.isAnnotationPresent(RequestMapping.class)) {
                         RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
                         String[] uri = requestMapping.value();
                         urls.addAll(rebuildUrl(baseUrl, uri));
-                    }
-                    else if (method.isAnnotationPresent(GetMapping.class))
-                    {
+                    } else if (method.isAnnotationPresent(GetMapping.class)) {
                         GetMapping requestMapping = method.getAnnotation(GetMapping.class);
                         String[] uri = requestMapping.value();
                         urls.addAll(rebuildUrl(baseUrl, uri));
-                    }
-                    else if (method.isAnnotationPresent(PostMapping.class))
-                    {
+                    } else if (method.isAnnotationPresent(PostMapping.class)) {
                         PostMapping requestMapping = method.getAnnotation(PostMapping.class);
                         String[] uri = requestMapping.value();
                         urls.addAll(rebuildUrl(baseUrl, uri));
-                    }
-                    else if (method.isAnnotationPresent(PutMapping.class))
-                    {
+                    } else if (method.isAnnotationPresent(PutMapping.class)) {
                         PutMapping requestMapping = method.getAnnotation(PutMapping.class);
                         String[] uri = requestMapping.value();
                         urls.addAll(rebuildUrl(baseUrl, uri));
-                    }
-                    else if (method.isAnnotationPresent(DeleteMapping.class))
-                    {
+                    } else if (method.isAnnotationPresent(DeleteMapping.class)) {
                         DeleteMapping requestMapping = method.getAnnotation(DeleteMapping.class);
                         String[] uri = requestMapping.value();
                         urls.addAll(rebuildUrl(baseUrl, uri));
@@ -108,44 +84,34 @@ public class PermitAllUrlProperties implements InitializingBean, ApplicationCont
         }
     }
 
-    private List<String> rebuildUrl(String[] bases, String[] uris)
-    {
+    private List<String> rebuildUrl(String[] bases, String[] uris) {
         List<String> urls = new ArrayList<>();
-        for (String base : bases)
-        {
-            if (uris.length > 0)
-            {
-                for (String uri : uris)
-                {
+        for (String base : bases) {
+            if (uris.length > 0) {
+                for (String uri : uris) {
                     urls.add(prefix(base) + prefix(uri));
                 }
-            }
-            else
-            {
+            } else {
                 urls.add(prefix(base));
             }
         }
         return urls;
     }
 
-    private String prefix(String seg)
-    {
+    private String prefix(String seg) {
         return seg.startsWith("/") ? seg : "/" + seg;
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException
-    {
+    public void setApplicationContext(ApplicationContext context) throws BeansException {
         this.applicationContext = context;
     }
 
-    public List<String> getUrls()
-    {
+    public List<String> getUrls() {
         return urls;
     }
 
-    public void setUrls(List<String> urls)
-    {
+    public void setUrls(List<String> urls) {
         this.urls = urls;
     }
 }

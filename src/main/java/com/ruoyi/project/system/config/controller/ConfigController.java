@@ -1,16 +1,5 @@
 package com.ruoyi.project.system.config.controller;
 
-import java.util.List;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.framework.aspectj.lang.annotation.Log;
 import com.ruoyi.framework.aspectj.lang.enums.BusinessType;
@@ -19,25 +8,31 @@ import com.ruoyi.framework.web.domain.AjaxResult;
 import com.ruoyi.framework.web.page.TableDataInfo;
 import com.ruoyi.project.system.config.domain.Config;
 import com.ruoyi.project.system.config.service.IConfigService;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 参数配置 信息操作处理
- * 
+ *
  * @author ruoyi
  */
 @Controller
 @RequestMapping("/system/config")
-public class ConfigController extends BaseController
-{
-    private String prefix = "system/config";
+public class ConfigController extends BaseController {
+    private final String prefix = "system/config";
 
     @Autowired
     private IConfigService configService;
 
     @RequiresPermissions("system:config:view")
     @GetMapping()
-    public String config()
-    {
+    public String config() {
         return prefix + "/config";
     }
 
@@ -47,8 +42,7 @@ public class ConfigController extends BaseController
     @RequiresPermissions("system:config:list")
     @PostMapping("/list")
     @ResponseBody
-    public TableDataInfo list(Config config)
-    {
+    public TableDataInfo list(Config config) {
         startPage();
         List<Config> list = configService.selectConfigList(config);
         return getDataTable(list);
@@ -58,8 +52,7 @@ public class ConfigController extends BaseController
     @RequiresPermissions("system:config:export")
     @PostMapping("/export")
     @ResponseBody
-    public AjaxResult export(Config config)
-    {
+    public AjaxResult export(Config config) {
         List<Config> list = configService.selectConfigList(config);
         ExcelUtil<Config> util = new ExcelUtil<Config>(Config.class);
         return util.exportExcel(list, "参数数据");
@@ -70,8 +63,7 @@ public class ConfigController extends BaseController
      */
     @RequiresPermissions("system:config:add")
     @GetMapping("/add")
-    public String add()
-    {
+    public String add() {
         return prefix + "/add";
     }
 
@@ -82,10 +74,8 @@ public class ConfigController extends BaseController
     @Log(title = "参数管理", businessType = BusinessType.INSERT)
     @PostMapping("/add")
     @ResponseBody
-    public AjaxResult addSave(@Validated Config config)
-    {
-        if (!configService.checkConfigKeyUnique(config))
-        {
+    public AjaxResult addSave(@Validated Config config) {
+        if (!configService.checkConfigKeyUnique(config)) {
             return error("新增参数'" + config.getConfigName() + "'失败，参数键名已存在");
         }
         return toAjax(configService.insertConfig(config));
@@ -96,8 +86,7 @@ public class ConfigController extends BaseController
      */
     @RequiresPermissions("system:config:edit")
     @GetMapping("/edit/{configId}")
-    public String edit(@PathVariable("configId") Long configId, ModelMap mmap)
-    {
+    public String edit(@PathVariable("configId") Long configId, ModelMap mmap) {
         mmap.put("config", configService.selectConfigById(configId));
         return prefix + "/edit";
     }
@@ -109,10 +98,8 @@ public class ConfigController extends BaseController
     @Log(title = "参数管理", businessType = BusinessType.UPDATE)
     @PostMapping("/edit")
     @ResponseBody
-    public AjaxResult editSave(@Validated Config config)
-    {
-        if (!configService.checkConfigKeyUnique(config))
-        {
+    public AjaxResult editSave(@Validated Config config) {
+        if (!configService.checkConfigKeyUnique(config)) {
             return error("修改参数'" + config.getConfigName() + "'失败，参数键名已存在");
         }
         return toAjax(configService.updateConfig(config));
@@ -125,8 +112,7 @@ public class ConfigController extends BaseController
     @Log(title = "参数管理", businessType = BusinessType.DELETE)
     @PostMapping("/remove")
     @ResponseBody
-    public AjaxResult remove(String ids)
-    {
+    public AjaxResult remove(String ids) {
         configService.deleteConfigByIds(ids);
         return success();
     }
@@ -138,8 +124,7 @@ public class ConfigController extends BaseController
     @Log(title = "参数管理", businessType = BusinessType.CLEAN)
     @GetMapping("/refreshCache")
     @ResponseBody
-    public AjaxResult refreshCache()
-    {
+    public AjaxResult refreshCache() {
         configService.resetConfigCache();
         return success();
     }
@@ -149,8 +134,7 @@ public class ConfigController extends BaseController
      */
     @PostMapping("/checkConfigKeyUnique")
     @ResponseBody
-    public boolean checkConfigKeyUnique(Config config)
-    {
+    public boolean checkConfigKeyUnique(Config config) {
         return configService.checkConfigKeyUnique(config);
     }
 }

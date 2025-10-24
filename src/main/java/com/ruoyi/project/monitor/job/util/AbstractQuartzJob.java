@@ -1,9 +1,5 @@
 package com.ruoyi.project.monitor.job.util;
 
-import java.util.Date;
-import org.quartz.JobExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.constant.ScheduleConstants;
 import com.ruoyi.common.utils.ExceptionUtil;
@@ -13,37 +9,36 @@ import com.ruoyi.common.utils.spring.SpringUtils;
 import com.ruoyi.project.monitor.job.domain.Job;
 import com.ruoyi.project.monitor.job.domain.JobLog;
 import com.ruoyi.project.monitor.job.service.IJobLogService;
+import org.quartz.JobExecutionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Date;
 
 /**
  * 抽象quartz调用
  *
  * @author ruoyi
  */
-public abstract class AbstractQuartzJob implements org.quartz.Job
-{
+public abstract class AbstractQuartzJob implements org.quartz.Job {
     private static final Logger log = LoggerFactory.getLogger(AbstractQuartzJob.class);
 
     /**
      * 线程本地变量
      */
-    private static ThreadLocal<Date> threadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<Date> threadLocal = new ThreadLocal<>();
 
     @Override
-    public void execute(JobExecutionContext context)
-    {
+    public void execute(JobExecutionContext context) {
         Job job = new Job();
         BeanUtils.copyBeanProp(job, context.getMergedJobDataMap().get(ScheduleConstants.TASK_PROPERTIES));
-        try
-        {
+        try {
             before(context, job);
-            if (job != null)
-            {
+            if (job != null) {
                 doExecute(context, job);
             }
             after(context, job, null);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error("任务执行异常  - ：", e);
             after(context, job, e);
         }
@@ -55,8 +50,7 @@ public abstract class AbstractQuartzJob implements org.quartz.Job
      * @param context 工作执行上下文对象
      * @param sysJob 系统计划任务
      */
-    protected void before(JobExecutionContext context, Job job)
-    {
+    protected void before(JobExecutionContext context, Job job) {
         threadLocal.set(new Date());
     }
 
@@ -66,8 +60,7 @@ public abstract class AbstractQuartzJob implements org.quartz.Job
      * @param context 工作执行上下文对象
      * @param job 系统计划任务
      */
-    protected void after(JobExecutionContext context, Job job, Exception e)
-    {
+    protected void after(JobExecutionContext context, Job job, Exception e) {
         Date startTime = threadLocal.get();
         threadLocal.remove();
 
@@ -79,14 +72,11 @@ public abstract class AbstractQuartzJob implements org.quartz.Job
         jobLog.setEndTime(new Date());
         long runMs = jobLog.getEndTime().getTime() - jobLog.getStartTime().getTime();
         jobLog.setJobMessage(jobLog.getJobName() + " 总共耗时：" + runMs + "毫秒");
-        if (e != null)
-        {
+        if (e != null) {
             jobLog.setStatus(Constants.FAIL);
             String errorMsg = StringUtils.substring(ExceptionUtil.getExceptionMessage(e), 0, 2000);
             jobLog.setExceptionInfo(errorMsg);
-        }
-        else
-        {
+        } else {
             jobLog.setStatus(Constants.SUCCESS);
         }
 

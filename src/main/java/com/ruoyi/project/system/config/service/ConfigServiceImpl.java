@@ -1,9 +1,5 @@
 package com.ruoyi.project.system.config.service;
 
-import java.util.List;
-import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.exception.ServiceException;
@@ -13,15 +9,19 @@ import com.ruoyi.common.utils.security.ShiroUtils;
 import com.ruoyi.common.utils.text.Convert;
 import com.ruoyi.project.system.config.domain.Config;
 import com.ruoyi.project.system.config.mapper.ConfigMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
 
 /**
  * 参数配置 服务层实现
- * 
+ *
  * @author ruoyi
  */
 @Service
-public class ConfigServiceImpl implements IConfigService
-{
+public class ConfigServiceImpl implements IConfigService {
     @Autowired
     private ConfigMapper configMapper;
 
@@ -29,20 +29,18 @@ public class ConfigServiceImpl implements IConfigService
      * 项目启动时，初始化参数到缓存
      */
     @PostConstruct
-    public void init()
-    {
+    public void init() {
         loadingConfigCache();
     }
 
     /**
      * 查询参数配置信息
-     * 
+     *
      * @param configId 参数配置ID
      * @return 参数配置信息
      */
     @Override
-    public Config selectConfigById(Long configId)
-    {
+    public Config selectConfigById(Long configId) {
         Config config = new Config();
         config.setConfigId(configId);
         return configMapper.selectConfig(config);
@@ -50,23 +48,20 @@ public class ConfigServiceImpl implements IConfigService
 
     /**
      * 根据键名查询参数配置信息
-     * 
+     *
      * @param configKey 参数名称
      * @return 参数键值
      */
     @Override
-    public String selectConfigByKey(String configKey)
-    {
+    public String selectConfigByKey(String configKey) {
         String configValue = Convert.toStr(CacheUtils.get(getCacheName(), getCacheKey(configKey)));
-        if (StringUtils.isNotEmpty(configValue))
-        {
+        if (StringUtils.isNotEmpty(configValue)) {
             return configValue;
         }
         Config config = new Config();
         config.setConfigKey(configKey);
         Config retConfig = configMapper.selectConfig(config);
-        if (StringUtils.isNotNull(retConfig))
-        {
+        if (StringUtils.isNotNull(retConfig)) {
             CacheUtils.put(getCacheName(), getCacheKey(configKey), retConfig.getConfigValue());
             return retConfig.getConfigValue();
         }
@@ -75,29 +70,26 @@ public class ConfigServiceImpl implements IConfigService
 
     /**
      * 查询参数配置列表
-     * 
+     *
      * @param config 参数配置信息
      * @return 参数配置集合
      */
     @Override
-    public List<Config> selectConfigList(Config config)
-    {
+    public List<Config> selectConfigList(Config config) {
         return configMapper.selectConfigList(config);
     }
 
     /**
      * 新增参数配置
-     * 
+     *
      * @param config 参数配置信息
      * @return 结果
      */
     @Override
-    public int insertConfig(Config config)
-    {
+    public int insertConfig(Config config) {
         config.setCreateBy(ShiroUtils.getLoginName());
         int row = configMapper.insertConfig(config);
-        if (row > 0)
-        {
+        if (row > 0) {
             CacheUtils.put(getCacheName(), getCacheKey(config.getConfigKey()), config.getConfigValue());
         }
         return row;
@@ -105,23 +97,20 @@ public class ConfigServiceImpl implements IConfigService
 
     /**
      * 修改参数配置
-     * 
+     *
      * @param config 参数配置信息
      * @return 结果
      */
     @Override
-    public int updateConfig(Config config)
-    {
+    public int updateConfig(Config config) {
         config.setUpdateBy(ShiroUtils.getLoginName());
         Config temp = configMapper.selectConfigById(config.getConfigId());
-        if (!StringUtils.equals(temp.getConfigKey(), config.getConfigKey()))
-        {
+        if (!StringUtils.equals(temp.getConfigKey(), config.getConfigKey())) {
             CacheUtils.remove(getCacheName(), getCacheKey(temp.getConfigKey()));
         }
-        
+
         int row = configMapper.updateConfig(config);
-        if (row > 0)
-        {
+        if (row > 0) {
             CacheUtils.put(getCacheName(), getCacheKey(config.getConfigKey()), config.getConfigValue());
         }
         return row;
@@ -129,18 +118,15 @@ public class ConfigServiceImpl implements IConfigService
 
     /**
      * 批量删除参数配置对象
-     * 
+     *
      * @param ids 需要删除的数据ID
      */
     @Override
-    public void deleteConfigByIds(String ids)
-    {
+    public void deleteConfigByIds(String ids) {
         Long[] configIds = Convert.toLongArray(ids);
-        for (Long configId : configIds)
-        {
+        for (Long configId : configIds) {
             Config config = selectConfigById(configId);
-            if (StringUtils.equals(UserConstants.YES, config.getConfigType()))
-            {
+            if (StringUtils.equals(UserConstants.YES, config.getConfigType())) {
                 throw new ServiceException(String.format("内置参数【%1$s】不能删除 ", config.getConfigKey()));
             }
             configMapper.deleteConfigById(configId);
@@ -152,11 +138,9 @@ public class ConfigServiceImpl implements IConfigService
      * 加载参数缓存数据
      */
     @Override
-    public void loadingConfigCache()
-    {
+    public void loadingConfigCache() {
         List<Config> configsList = configMapper.selectConfigList(new Config());
-        for (Config config : configsList)
-        {
+        for (Config config : configsList) {
             CacheUtils.put(getCacheName(), getCacheKey(config.getConfigKey()), config.getConfigValue());
         }
     }
@@ -165,8 +149,7 @@ public class ConfigServiceImpl implements IConfigService
      * 清空参数缓存数据
      */
     @Override
-    public void clearConfigCache()
-    {
+    public void clearConfigCache() {
         CacheUtils.removeAll(getCacheName());
     }
 
@@ -174,25 +157,22 @@ public class ConfigServiceImpl implements IConfigService
      * 重置参数缓存数据
      */
     @Override
-    public void resetConfigCache()
-    {
+    public void resetConfigCache() {
         clearConfigCache();
         loadingConfigCache();
     }
 
     /**
      * 校验参数键名是否唯一
-     * 
+     *
      * @param config 参数配置信息
      * @return 结果
      */
     @Override
-    public boolean checkConfigKeyUnique(Config config)
-    {
+    public boolean checkConfigKeyUnique(Config config) {
         Long configId = StringUtils.isNull(config.getConfigId()) ? -1L : config.getConfigId();
         Config info = configMapper.checkConfigKeyUnique(config.getConfigKey());
-        if (StringUtils.isNotNull(info) && info.getConfigId().longValue() != configId.longValue())
-        {
+        if (StringUtils.isNotNull(info) && info.getConfigId().longValue() != configId.longValue()) {
             return UserConstants.NOT_UNIQUE;
         }
         return UserConstants.UNIQUE;
@@ -200,22 +180,20 @@ public class ConfigServiceImpl implements IConfigService
 
     /**
      * 获取cache name
-     * 
+     *
      * @return 缓存名
      */
-    private String getCacheName()
-    {
+    private String getCacheName() {
         return Constants.SYS_CONFIG_CACHE;
     }
 
     /**
      * 设置cache key
-     * 
+     *
      * @param configKey 参数键
      * @return 缓存键key
      */
-    private String getCacheKey(String configKey)
-    {
+    private String getCacheKey(String configKey) {
         return Constants.SYS_CONFIG_KEY + configKey;
     }
 }

@@ -6,21 +6,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * 报表
- * 
+ *
  * @author ruoyi
  */
 @Controller
 @RequestMapping("/demo/report")
-public class DemoReportController
-{
-    private String prefix = "demo/report";
+public class DemoReportController {
+    private final String prefix = "demo/report";
 
     /**
      * 百度ECharts
      */
     @GetMapping("/echarts")
-    public String echarts()
-    {
+    public String echarts() {
         return prefix + "/echarts";
     }
 
@@ -28,8 +26,7 @@ public class DemoReportController
      * 图表插件
      */
     @GetMapping("/peity")
-    public String peity()
-    {
+    public String peity() {
         return prefix + "/peity";
     }
 
@@ -37,8 +34,7 @@ public class DemoReportController
      * 线状图插件
      */
     @GetMapping("/sparkline")
-    public String sparkline()
-    {
+    public String sparkline() {
         return prefix + "/sparkline";
     }
 
@@ -46,8 +42,7 @@ public class DemoReportController
      * 图表组合
      */
     @GetMapping("/metrics")
-    public String metrics()
-    {
+    public String metrics() {
         return prefix + "/metrics";
     }
 }

@@ -1,20 +1,20 @@
 package com.ruoyi.framework.web.domain;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.io.Serializable;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Entity基类
- * 
+ *
  * @author ruoyi
  */
-public class BaseEntity implements Serializable
-{
+public class BaseEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 搜索值 */
@@ -42,77 +42,62 @@ public class BaseEntity implements Serializable
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Map<String, Object> params;
 
-    public String getSearchValue()
-    {
+    public String getSearchValue() {
         return searchValue;
     }
 
-    public void setSearchValue(String searchValue)
-    {
+    public void setSearchValue(String searchValue) {
         this.searchValue = searchValue;
     }
 
-    public String getCreateBy()
-    {
+    public String getCreateBy() {
         return createBy;
     }
 
-    public void setCreateBy(String createBy)
-    {
+    public void setCreateBy(String createBy) {
         this.createBy = createBy;
     }
 
-    public Date getCreateTime()
-    {
+    public Date getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime)
-    {
+    public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
 
-    public String getUpdateBy()
-    {
+    public String getUpdateBy() {
         return updateBy;
     }
 
-    public void setUpdateBy(String updateBy)
-    {
+    public void setUpdateBy(String updateBy) {
         this.updateBy = updateBy;
     }
 
-    public Date getUpdateTime()
-    {
+    public Date getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(Date updateTime)
-    {
+    public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
 
-    public String getRemark()
-    {
+    public String getRemark() {
         return remark;
     }
 
-    public void setRemark(String remark)
-    {
+    public void setRemark(String remark) {
         this.remark = remark;
     }
 
-    public Map<String, Object> getParams()
-    {
-        if (params == null)
-        {
+    public Map<String, Object> getParams() {
+        if (params == null) {
             params = new HashMap<String, Object>();
         }
         return params;
     }
 
-    public void setParams(Map<String, Object> params)
-    {
+    public void setParams(Map<String, Object> params) {
         this.params = params;
     }
 }

@@ -1,16 +1,5 @@
 package com.ruoyi.project.system.notice.controller;
 
-import java.util.List;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import com.ruoyi.framework.aspectj.lang.annotation.Log;
 import com.ruoyi.framework.aspectj.lang.enums.BusinessType;
 import com.ruoyi.framework.web.controller.BaseController;
@@ -18,25 +7,31 @@ import com.ruoyi.framework.web.domain.AjaxResult;
 import com.ruoyi.framework.web.page.TableDataInfo;
 import com.ruoyi.project.system.notice.domain.Notice;
 import com.ruoyi.project.system.notice.service.INoticeService;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 公告 信息操作处理
- * 
+ *
  * @author ruoyi
  */
 @Controller
 @RequestMapping("/system/notice")
-public class NoticeController extends BaseController
-{
-    private String prefix = "system/notice";
+public class NoticeController extends BaseController {
+    private final String prefix = "system/notice";
 
     @Autowired
     private INoticeService noticeService;
 
     @RequiresPermissions("system:notice:view")
     @GetMapping()
-    public String notice()
-    {
+    public String notice() {
         return prefix + "/notice";
     }
 
@@ -46,8 +41,7 @@ public class NoticeController extends BaseController
     @RequiresPermissions("system:notice:list")
     @PostMapping("/list")
     @ResponseBody
-    public TableDataInfo list(Notice notice)
-    {
+    public TableDataInfo list(Notice notice) {
         startPage();
         List<Notice> list = noticeService.selectNoticeList(notice);
         return getDataTable(list);
@@ -58,8 +52,7 @@ public class NoticeController extends BaseController
      */
     @RequiresPermissions("system:notice:add")
     @GetMapping("/add")
-    public String add()
-    {
+    public String add() {
         return prefix + "/add";
     }
 
@@ -70,8 +63,7 @@ public class NoticeController extends BaseController
     @Log(title = "通知公告", businessType = BusinessType.INSERT)
     @PostMapping("/add")
     @ResponseBody
-    public AjaxResult addSave(@Validated Notice notice)
-    {
+    public AjaxResult addSave(@Validated Notice notice) {
         return toAjax(noticeService.insertNotice(notice));
     }
 
@@ -80,8 +72,7 @@ public class NoticeController extends BaseController
      */
     @RequiresPermissions("system:notice:edit")
     @GetMapping("/edit/{noticeId}")
-    public String edit(@PathVariable("noticeId") Long noticeId, ModelMap mmap)
-    {
+    public String edit(@PathVariable("noticeId") Long noticeId, ModelMap mmap) {
         mmap.put("notice", noticeService.selectNoticeById(noticeId));
         return prefix + "/edit";
     }
@@ -93,8 +84,7 @@ public class NoticeController extends BaseController
     @Log(title = "通知公告", businessType = BusinessType.UPDATE)
     @PostMapping("/edit")
     @ResponseBody
-    public AjaxResult editSave(@Validated Notice notice)
-    {
+    public AjaxResult editSave(@Validated Notice notice) {
         return toAjax(noticeService.updateNotice(notice));
     }
 
@@ -103,8 +93,7 @@ public class NoticeController extends BaseController
      */
     @RequiresPermissions("system:notice:list")
     @GetMapping("/view/{noticeId}")
-    public String view(@PathVariable("noticeId") Long noticeId, ModelMap mmap)
-    {
+    public String view(@PathVariable("noticeId") Long noticeId, ModelMap mmap) {
         mmap.put("notice", noticeService.selectNoticeById(noticeId));
         return prefix + "/view";
     }
@@ -116,8 +105,7 @@ public class NoticeController extends BaseController
     @Log(title = "通知公告", businessType = BusinessType.DELETE)
     @PostMapping("/remove")
     @ResponseBody
-    public AjaxResult remove(String ids)
-    {
+    public AjaxResult remove(String ids) {
         return toAjax(noticeService.deleteNoticeByIds(ids));
     }
 }

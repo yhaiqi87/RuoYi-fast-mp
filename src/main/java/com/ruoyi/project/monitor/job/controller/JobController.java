@@ -1,18 +1,5 @@
 package com.ruoyi.project.monitor.job.controller;
 
-import java.util.List;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.quartz.SchedulerException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.exception.job.TaskException;
 import com.ruoyi.common.utils.StringUtils;
@@ -26,33 +13,39 @@ import com.ruoyi.project.monitor.job.domain.Job;
 import com.ruoyi.project.monitor.job.service.IJobService;
 import com.ruoyi.project.monitor.job.util.CronUtils;
 import com.ruoyi.project.monitor.job.util.ScheduleUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.quartz.SchedulerException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 调度任务信息操作处理
- * 
+ *
  * @author ruoyi
  */
 @Controller
 @RequestMapping("/monitor/job")
-public class JobController extends BaseController
-{
-    private String prefix = "monitor/job";
+public class JobController extends BaseController {
+    private final String prefix = "monitor/job";
 
     @Autowired
     private IJobService jobService;
 
     @RequiresPermissions("monitor:job:view")
     @GetMapping()
-    public String job()
-    {
+    public String job() {
         return prefix + "/job";
     }
 
     @RequiresPermissions("monitor:job:list")
     @PostMapping("/list")
     @ResponseBody
-    public TableDataInfo list(Job job)
-    {
+    public TableDataInfo list(Job job) {
         startPage();
         List<Job> list = jobService.selectJobList(job);
         return getDataTable(list);
@@ -62,8 +55,7 @@ public class JobController extends BaseController
     @RequiresPermissions("monitor:job:export")
     @PostMapping("/export")
     @ResponseBody
-    public AjaxResult export(Job job)
-    {
+    public AjaxResult export(Job job) {
         List<Job> list = jobService.selectJobList(job);
         ExcelUtil<Job> util = new ExcelUtil<Job>(Job.class);
         return util.exportExcel(list, "定时任务");
@@ -73,16 +65,14 @@ public class JobController extends BaseController
     @RequiresPermissions("monitor:job:remove")
     @PostMapping("/remove")
     @ResponseBody
-    public AjaxResult remove(String ids) throws SchedulerException
-    {
+    public AjaxResult remove(String ids) throws SchedulerException {
         jobService.deleteJobByIds(ids);
         return success();
     }
 
     @RequiresPermissions("monitor:job:detail")
     @GetMapping("/detail/{jobId}")
-    public String detail(@PathVariable("jobId") Long jobId, ModelMap mmap)
-    {
+    public String detail(@PathVariable("jobId") Long jobId, ModelMap mmap) {
         mmap.put("name", "job");
         mmap.put("job", jobService.selectJobById(jobId));
         return prefix + "/detail";
@@ -95,8 +85,7 @@ public class JobController extends BaseController
     @RequiresPermissions("monitor:job:changeStatus")
     @PostMapping("/changeStatus")
     @ResponseBody
-    public AjaxResult changeStatus(Job job) throws SchedulerException
-    {
+    public AjaxResult changeStatus(Job job) throws SchedulerException {
         Job newJob = jobService.selectJobById(job.getJobId());
         newJob.setStatus(job.getStatus());
         return toAjax(jobService.changeStatus(newJob));
@@ -109,8 +98,7 @@ public class JobController extends BaseController
     @RequiresPermissions("monitor:job:changeStatus")
     @PostMapping("/run")
     @ResponseBody
-    public AjaxResult run(Job job) throws SchedulerException
-    {
+    public AjaxResult run(Job job) throws SchedulerException {
         boolean result = jobService.run(job);
         return result ? success() : error("任务不存在或已过期！");
     }
@@ -120,8 +108,7 @@ public class JobController extends BaseController
      */
     @RequiresPermissions("monitor:job:add")
     @GetMapping("/add")
-    public String add()
-    {
+    public String add() {
         return prefix + "/add";
     }
 
@@ -132,30 +119,18 @@ public class JobController extends BaseController
     @RequiresPermissions("monitor:job:add")
     @PostMapping("/add")
     @ResponseBody
-    public AjaxResult addSave(@Validated Job job) throws SchedulerException, TaskException
-    {
-        if (!CronUtils.isValid(job.getCronExpression()))
-        {
+    public AjaxResult addSave(@Validated Job job) throws SchedulerException, TaskException {
+        if (!CronUtils.isValid(job.getCronExpression())) {
             return error("新增任务'" + job.getJobName() + "'失败，Cron表达式不正确");
-        }
-        else if (StringUtils.containsIgnoreCase(job.getInvokeTarget(), Constants.LOOKUP_RMI))
-        {
+        } else if (StringUtils.containsIgnoreCase(job.getInvokeTarget(), Constants.LOOKUP_RMI)) {
             return error("新增任务'" + job.getJobName() + "'失败，目标字符串不允许'rmi'调用");
-        }
-        else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), new String[] { Constants.LOOKUP_LDAP, Constants.LOOKUP_LDAPS }))
-        {
+        } else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), new String[]{Constants.LOOKUP_LDAP, Constants.LOOKUP_LDAPS})) {
             return error("新增任务'" + job.getJobName() + "'失败，目标字符串不允许'ldap(s)'调用");
-        }
-        else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), new String[] { Constants.HTTP, Constants.HTTPS }))
-        {
+        } else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), new String[]{Constants.HTTP, Constants.HTTPS})) {
             return error("新增任务'" + job.getJobName() + "'失败，目标字符串不允许'http(s)'调用");
-        }
-        else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), Constants.JOB_ERROR_STR))
-        {
+        } else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), Constants.JOB_ERROR_STR)) {
             return error("新增任务'" + job.getJobName() + "'失败，目标字符串存在违规");
-        }
-        else if (!ScheduleUtils.whiteList(job.getInvokeTarget()))
-        {
+        } else if (!ScheduleUtils.whiteList(job.getInvokeTarget())) {
             return error("新增任务'" + job.getJobName() + "'失败，目标字符串不在白名单内");
         }
         job.setCreateBy(getLoginName());
@@ -167,8 +142,7 @@ public class JobController extends BaseController
      */
     @RequiresPermissions("monitor:job:edit")
     @GetMapping("/edit/{jobId}")
-    public String edit(@PathVariable("jobId") Long jobId, ModelMap mmap)
-    {
+    public String edit(@PathVariable("jobId") Long jobId, ModelMap mmap) {
         mmap.put("job", jobService.selectJobById(jobId));
         return prefix + "/edit";
     }
@@ -180,30 +154,18 @@ public class JobController extends BaseController
     @RequiresPermissions("monitor:job:edit")
     @PostMapping("/edit")
     @ResponseBody
-    public AjaxResult editSave(@Validated Job job) throws SchedulerException, TaskException
-    {
-        if (!CronUtils.isValid(job.getCronExpression()))
-        {
+    public AjaxResult editSave(@Validated Job job) throws SchedulerException, TaskException {
+        if (!CronUtils.isValid(job.getCronExpression())) {
             return error("修改任务'" + job.getJobName() + "'失败，Cron表达式不正确");
-        }
-        else if (StringUtils.containsIgnoreCase(job.getInvokeTarget(), Constants.LOOKUP_RMI))
-        {
+        } else if (StringUtils.containsIgnoreCase(job.getInvokeTarget(), Constants.LOOKUP_RMI)) {
             return error("修改任务'" + job.getJobName() + "'失败，目标字符串不允许'rmi'调用");
-        }
-        else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), new String[] { Constants.LOOKUP_LDAP, Constants.LOOKUP_LDAPS }))
-        {
+        } else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), new String[]{Constants.LOOKUP_LDAP, Constants.LOOKUP_LDAPS})) {
             return error("修改任务'" + job.getJobName() + "'失败，目标字符串不允许'ldap'调用");
-        }
-        else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), new String[] { Constants.HTTP, Constants.HTTPS }))
-        {
+        } else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), new String[]{Constants.HTTP, Constants.HTTPS})) {
             return error("修改任务'" + job.getJobName() + "'失败，目标字符串不允许'http(s)//'调用");
-        }
-        else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), Constants.JOB_ERROR_STR))
-        {
+        } else if (StringUtils.containsAnyIgnoreCase(job.getInvokeTarget(), Constants.JOB_ERROR_STR)) {
             return error("修改任务'" + job.getJobName() + "'失败，目标字符串存在违规");
-        }
-        else if (!ScheduleUtils.whiteList(job.getInvokeTarget()))
-        {
+        } else if (!ScheduleUtils.whiteList(job.getInvokeTarget())) {
             return error("修改任务'" + job.getJobName() + "'失败，目标字符串不在白名单内");
         }
         job.setUpdateBy(getLoginName());
@@ -215,8 +177,7 @@ public class JobController extends BaseController
      */
     @PostMapping("/checkCronExpressionIsValid")
     @ResponseBody
-    public boolean checkCronExpressionIsValid(Job job)
-    {
+    public boolean checkCronExpressionIsValid(Job job) {
         return jobService.checkCronExpressionIsValid(job.getCronExpression());
     }
 
@@ -224,8 +185,7 @@ public class JobController extends BaseController
      * Cron表达式在线生成
      */
     @GetMapping("/cron")
-    public String cron()
-    {
+    public String cron() {
         return prefix + "/cron";
     }
 
@@ -234,15 +194,11 @@ public class JobController extends BaseController
      */
     @GetMapping("/queryCronExpression")
     @ResponseBody
-    public AjaxResult queryCronExpression(@RequestParam(value = "cronExpression", required = false) String cronExpression)
-    {
-        if (jobService.checkCronExpressionIsValid(cronExpression))
-        {
+    public AjaxResult queryCronExpression(@RequestParam(value = "cronExpression", required = false) String cronExpression) {
+        if (jobService.checkCronExpressionIsValid(cronExpression)) {
             List<String> dateList = CronUtils.getRecentTriggerTime(cronExpression);
             return success(dateList);
-        }
-        else
-        {
+        } else {
             return error("表达式无效");
         }
     }

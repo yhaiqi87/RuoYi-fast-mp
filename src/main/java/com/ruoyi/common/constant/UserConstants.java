@@ -2,11 +2,10 @@ package com.ruoyi.common.constant;
 
 /**
  * 用户常量信息
- * 
+ *
  * @author ruoyi
  */
-public class UserConstants
-{
+public class UserConstants {
     /** 正常状态 */
     public static final String NORMAL = "0";
 
